@@ -137,9 +137,29 @@ services:
 #################### VOLUMES ####################
 volumes:
   zookeeper-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: F:/docker-images/volumes/zookeeper_data
   kafka-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: F:/docker-images/volumes/kafka_data
   mongodb-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: F:/docker-images/volumes/mongodb_data
   elasticsearch-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: F:/docker-images/volumes/elasticsearch_data
 
 
 #################### NETWORK ####################
