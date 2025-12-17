@@ -1,0 +1,99 @@
+# FOR YELP DATA ANALYTICS PROJECT
+
+services:
+  # ############ ELASTIC SEARCH #############
+  elastic-search:
+    container_name: elastic-search
+    # image: elasticsearch:${ELASTIC_VERSION}
+    image: elasticsearch:9.2.2
+
+    environment:
+      # add accordingly 
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+
+    ports:
+      # add which ports maps what? add accordingly
+      - 9200:9200
+      - 9300:9300
+
+    # volume change accordingly
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch
+
+    networks:
+      - local
+
+    ############ ZOOKEEPER #############
+    # Change Image if required (use apache/zookeeper)
+    zookeeper:
+      container_name: zookeeper
+      # image: confluentinc/cp-zookeeper:${CONFLUENT_VERSION}
+      image: confluentinc/cp-zookeeper:7.7.7
+      environment:
+        - ZOOKEEPER_CLIENT_PORT=2181
+        - ZOOKEEPER_TICK_TIME=2000
+
+      ports:
+        - 2181:2181
+
+      volumes:
+        - zookeeper-data:/var/lib/zookeeper/data
+      
+      networks:
+        - local
+
+    # ############# KAFKA #############
+    kafka:
+      container_name: kafka
+      # image: confluentinc/cp-kafka:${CONFLUENT_VERSION}
+      image: confluentinc/cp-kafka:7.7.7
+      environment:
+        - KAFKA_BROKER_ID=1
+        - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+        - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+        - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+        - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+        - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+
+      ports:
+        - 9092:9092
+        - 29092:29092
+
+      volumes:
+        - kafka-data:/var/lib/kafka/data
+
+      networks:
+        - local
+
+
+  # ############# MONGODB #############
+  mongodb:
+    container_name: mongodb
+    image: mongo:8.2.2-nanoserver
+
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+
+    ports:
+      - 27017:27017
+
+    volumes:
+      - mongodb-data:/data/db
+
+    networks:
+      - local
+
+
+
+volumes:
+  elasticsearch-data:
+  zookeeper-data:
+  kafka-data:
+  mongo-data:
+
+networks:
+  local:
+    driver: bridge
+    name: local
