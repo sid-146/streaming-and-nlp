@@ -1,0 +1,17 @@
+kafka:
+  bootstrap_servers:
+    - "localhost:9092"
+
+  topics:
+    raw_reviews: "raw_reviews"
+
+  producer:
+    acks: 1
+    retries: 3
+    linger_ms: 10
+
+  consumer:
+    group_id: "yelp-consumer-group"
+    auto_offset_reset: "earliest"
+    enable_auto_commit: true
+    poll_timeout_ms: 1000

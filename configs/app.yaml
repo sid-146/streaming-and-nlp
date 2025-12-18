@@ -1,0 +1,23 @@
+app:
+  environment: "local"
+
+  streaming:
+    enabled: true
+    sleep_range_ms:
+      min: 100
+      max: 300
+
+  sentiment:
+    models:
+      - "baseline"
+      - "bert"
+
+  evaluation:
+    star_rating_mapping:
+      negative: [1, 2]
+      neutral: [3]
+      positive: [4, 5]
+
+  logging:
+    level: "INFO"
+    format: "%(asctime)s - %(levelname)s - %(message)s"
