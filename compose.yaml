@@ -34,9 +34,11 @@ services:
       - zookeeper
 
     environment:
+      # learn about this variables.
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-
+      # 9092 for internal docker comms and 29092 for host machine comms
+      # I guess changing this might corrupt the metadata of kafka.
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
 
@@ -57,20 +59,24 @@ services:
 
 
   #################### KAFKA UI ####################
+  # If it stuck in loop then delete the volume kafka-data stored in host machine and try again 
+  # Use following commands
+  # docker compose down -v
+  # docker compose up -d
   kafka-ui:
     container_name: kafka-ui
     image: provectuslabs/kafka-ui:latest
 
-    depends_on:
-      - kafka
+    ports:
+      - "8080:8080"
 
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
-      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    # KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
 
-    ports:
-      - "8080:8080"
+    depends_on:
+      - kafka
 
     networks:
       - local
@@ -133,58 +139,58 @@ services:
     networks:
       - local
 
-  # #################### PostgreSQL ####################
-  # postgres:
-  #   image: postgres:16-alpine
-  #   container_name: postgres
-  #   env_file:
-  #     - .env
-  #   # NOTE: POSTGRES_USER, POSTGRES_PASSWORD, and POSTGRES_DB should be in your .env file
-  #   environment:
-  #     - POSTGRES_HOST_AUTH_METHOD=password
-  #   ports:
-  #     - "5432:5432"
-  #   volumes:
-  #     - postgres_data:/var/lib/postgresql/data
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-  #     interval: 5s
-  #     timeout: 5s
-  #     retries: 10
-  #     start_period: 30s
-  #   restart: unless-stopped
-  #   networks:
-  #     - local
+# #################### PostgreSQL ####################
+# postgres:
+#   image: postgres:16-alpine
+#   container_name: postgres
+#   env_file:
+#     - .env
+#   # NOTE: POSTGRES_USER, POSTGRES_PASSWORD, and POSTGRES_DB should be in your .env file
+#   environment:
+#     - POSTGRES_HOST_AUTH_METHOD=password
+#   ports:
+#     - "5432:5432"
+#   volumes:
+#     - postgres_data:/var/lib/postgresql/data
+#   healthcheck:
+#     test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+#     interval: 5s
+#     timeout: 5s
+#     retries: 10
+#     start_period: 30s
+#   restart: unless-stopped
+#   networks:
+#     - local
 
-  # #################### Airflow ####################
-  # airflow:
-  #   build:
-  #     context: .
-  #     dockerfile: ./airflow/Dockerfile
-  #   container_name: airflow-w-pg
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #   env_file:
-  #     - .env
-  #   environment:
-  #     - PYTHONPATH=/opt/airflow
-  #   volumes:
-  #     - ./airflow/dags:/opt/airflow/dags
-  #     - airflow_logs:/opt/airflow/logs
-  #     - ./airflow/plugins:/opt/airflow/plugins
-  #     - ./airflow/src:/opt/airflow/src
-  #   ports:
-  #     - "9099:9099" # Port for Airflow Webserver
-  #     - "8793:8793" # Port for Airflow Celery Flower
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:9099/health"]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 3
-  #     start_period: 120s
-  #   networks:
-  #     - local
+# #################### Airflow ####################
+# airflow:
+#   build:
+#     context: .
+#     dockerfile: ./airflow/Dockerfile
+#   container_name: airflow-w-pg
+#   depends_on:
+#     postgres:
+#       condition: service_healthy
+#   env_file:
+#     - .env
+#   environment:
+#     - PYTHONPATH=/opt/airflow
+#   volumes:
+#     - ./airflow/dags:/opt/airflow/dags
+#     - airflow_logs:/opt/airflow/logs
+#     - ./airflow/plugins:/opt/airflow/plugins
+#     - ./airflow/src:/opt/airflow/src
+#   ports:
+#     - "9099:9099" # Port for Airflow Webserver
+#     - "8793:8793" # Port for Airflow Celery Flower
+#   healthcheck:
+#     test: ["CMD", "curl", "-f", "http://localhost:9099/health"]
+#     interval: 30s
+#     timeout: 10s
+#     retries: 3
+#     start_period: 120s
+#   networks:
+#     - local
 
 
 
