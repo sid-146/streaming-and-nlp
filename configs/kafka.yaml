@@ -5,10 +5,12 @@ kafka:
   topics:
     raw_reviews: "raw_reviews"
 
-  producer:
-    acks: 1
-    retries: 3
-    linger_ms: 10
+  producers:
+    yelp_review_producer:
+      topic: 'raw_reviews'
+      bootstrap_servers:
+        - "localhost:29092"
+
 
   consumer:
     group_id: "yelp-consumer-group"
