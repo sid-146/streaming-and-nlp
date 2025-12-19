@@ -1,7 +1,7 @@
-- checkpoints_db
+checkpoints_db:
   host: localhost
   port: 27017
   database: streaming_nlp
-  collection: checkpoints_db
+  collection: checkpoints
   username: admin
   password: password
