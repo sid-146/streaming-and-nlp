@@ -1,34 +1,34 @@
 from src.kafka.producer.producer_factory import KafkaProducerFactory
+from src.db.mongodb.mongodb_factory import MongoDBFactory
 from src.common.config_loader import load_config
 
 import json
-
-# This is testing code; remove with actual logic
+import ijson
 import time
 
 
 def run():
     # Todo: Update kafka config yaml to handle each unique producer case
     kafka_config = load_config("kafka.yaml")
+    mongo_config = load_config("mongo.yaml")
     topic = "test_topic"
     config = {}
     config["bootstrap.servers"] = ",".join(kafka_config["kafka"]["bootstrap_servers"])
     config["client.id"] = "yelp_review_producer"
     producer = KafkaProducerFactory.create_producer(**config)
-    for i in range(20):
-        message = {
-            "review_id": f"review_{i}",
-            "text": f"This is review number {i}",
-        }
+    mongo_client = MongoDBFactory.create_mongodb_client(**config)
 
-        producer.produce(
-            topic=topic,
-            key=str(message["review_id"]),
-            value=json.dumps(message).encode("utf-8"),
-            callback=KafkaProducerFactory.delivery_report,
-        )
-        producer.poll(0)
-        time.sleep(5)
+    with open("data/yelp_academic_dataset_review.json", "r") as f:
+        reviews = ijson.items(f, "", multiple_values=True)
+        for review in reviews:
+            producer.produce(
+                topic=topic,
+                key=str(review["review_id"]),
+                value=json.dumps(review).encode("utf-8"),
+                callback=KafkaProducerFactory.delivery_report,
+            )
+            producer.poll(0)
+            time.sleep(5)
     producer.flush()
 
 
