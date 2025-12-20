@@ -139,6 +139,56 @@ services:
     networks:
       - local
 
+  # #################### Spark ####################
+  spark-stream-master:
+    build:
+      context: .
+      dockerfile: ./spark/Dockerfile
+    container_name: spark-stream-master
+    environment:
+      - SPARK_MODE=master
+      - WEBUI_PORT=2020
+      - MASTER_PORT=3033
+      - PYTHONPATH=/opt/spark-apps
+    ports:
+      - "2020:2020"  # Spark Master UI
+      - "1011:1011"  # RPC
+    volumes:
+    - spark_warehouse:/opt/spark-apps/spark-warehouse
+    - ./src/apps:/opt/spark-apps
+    - ./src:/opt/spark-apps/src
+    - spark_data:/opt/spark-data
+    - ./spark/entrypoint.sh:/opt/entrypoint.sh
+    networks:
+      - local
+    entrypoint: ["/bin/bash","/opt/entrypoint.sh"]
+
+  spark-stream-worker-1:
+    build:
+      context: .
+      dockerfile: ./spark/Dockerfile
+    container_name: spark-stream-worker-1
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-stream-master:3033
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=2g
+      - WORKER_PORT=2021
+      - MASTER_PORT=3033
+      - PYTHONPATH=/opt/spark-apps
+    depends_on:
+      - spark-stream-master
+    ports:
+      - "2021:2021"
+    volumes:
+      - spark_warehouse:/opt/spark-apps/spark-warehouse
+      - spark_data:/opt/spark-data
+      - ./src:/opt/spark-apps/src
+      - ./spark/entrypoint.sh:/opt/entrypoint.sh
+    networks:
+      - local
+    entrypoint: ["/bin/bash","/opt/entrypoint.sh"]
+
 # #################### PostgreSQL ####################
 # postgres:
 #   image: postgres:16-alpine
@@ -232,6 +282,18 @@ volumes:
       type: none
       o: bind
       device: F:/docker-images/volumes/airflow_logs
+  spark_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: F:/docker-images/volumes/spark_data
+  spark_warehouse:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: F:/docker-images/volumes/spark_warehouse
 
 #################### NETWORK ####################
 networks:
