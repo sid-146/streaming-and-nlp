@@ -5,3 +5,11 @@ checkpoints_db:
   collection: checkpoints
   username: admin
   password: password
+
+enriched_review:
+  host: localhost
+  port: 27017
+  database: streaming_nlp
+  collection: enriched_reviews
+  username: admin
+  password: password

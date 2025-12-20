@@ -8,12 +8,18 @@ kafka:
   producers:
     yelp_review_producer:
       topic: 'raw_reviews'
+      client_id: 'python.yelp_review_producer'
       bootstrap_servers:
         - "localhost:29092"
+      time_range_ms:
+        min: 3000
+        max: 15000
 
 
-  consumer:
-    group_id: "yelp-consumer-group"
-    auto_offset_reset: "earliest"
-    enable_auto_commit: true
-    poll_timeout_ms: 1000
+  consumers:
+    yelp_review_consumer:
+      topic: 'raw_reviews'
+      client_id: 'spark.yelp_review_consumer'
+      bootstrap_servers:
+        - "localhost:29092"    
+      group_id: 'spark-stream-group'
