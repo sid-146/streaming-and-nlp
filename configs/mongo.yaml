@@ -6,10 +6,19 @@ checkpoints_db:
   username: admin
   password: password
 
+# host mongodb as it is running inside docker network `local`
 enriched_review:
-  host: localhost
+  host: mongodb
   port: 27017
   database: streaming_nlp
   collection: enriched_reviews
+  username: admin
+  password: password
+
+raw_review_collection:
+  host: mongodb
+  port: 27017
+  database: streaming_nlp
+  collection: raw_reviews
   username: admin
   password: password
