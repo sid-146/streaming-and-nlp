@@ -48,8 +48,8 @@ services:
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
 
     ports:
-      - "9092:9092"
-      - "29092:29092"
+      - "9092:9092" # for docker network
+      - "29092:29092" # outside docker network
 
     volumes:
       - kafka-data:/var/lib/kafka/data
@@ -152,17 +152,20 @@ services:
       - PYTHONPATH=/opt/spark-apps
     ports:
       - "2020:2020"  # Spark Master UI
-      - "1011:1011"  # RPC
+      - "3033:3033"  # RPC
     volumes:
     - spark_warehouse:/opt/spark-apps/spark-warehouse
     - ./src/apps:/opt/spark-apps
     - ./src:/opt/spark-apps/src
     - spark_data:/opt/spark-data
     - ./spark/entrypoint.sh:/opt/entrypoint.sh
+    - ./configs:/opt/spark-apps/configs
+    # - ./data:/opt/spark-apps
     networks:
       - local
     entrypoint: ["/bin/bash","/opt/entrypoint.sh"]
 
+  # #################### Spark Worker 1 ####################
   spark-stream-worker-1:
     build:
       context: .
@@ -183,8 +186,10 @@ services:
     volumes:
       - spark_warehouse:/opt/spark-apps/spark-warehouse
       - spark_data:/opt/spark-data
+      - ./src/apps:/opt/spark-apps
       - ./src:/opt/spark-apps/src
       - ./spark/entrypoint.sh:/opt/entrypoint.sh
+      - ./configs:/opt/spark-apps/configs
     networks:
       - local
     entrypoint: ["/bin/bash","/opt/entrypoint.sh"]
