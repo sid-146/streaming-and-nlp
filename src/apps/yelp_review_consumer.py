@@ -12,6 +12,11 @@ from transformers import pipeline
 from src.common.config_loader import load_config
 
 
+import logging
+
+logger = logging.getLogger(__file__)
+logger.setLevel(logging.INFO)
+
 sentiment_pipeline = pipeline(
     "text-classification",
     model="distilbert-base-uncased-finetuned-sst-2-english",
@@ -39,10 +44,19 @@ def run():
         .getOrCreate()
     )
 
+    spark.conf.set(
+        "spark.sql.streaming.checkpointLocation",
+        "/opt/spark-data/yelp_review_consumer/checkpoints",
+    )
+
+    logger.info("created spark session")
+
     kafka_config = load_config("kafka.yaml")["kafka"]["consumers"][
         "yelp_review_consumer"
     ]
     mongo_config = load_config("mongo.yaml")["enriched_review"]
+
+    logger.info("Configs Extracted.")
 
     schema = StructType(
         [
@@ -62,20 +76,25 @@ def run():
         spark.readStream.format("kafka")
         .option("kafka.bootstrap.servers", ",".join(kafka_config["bootstrap_servers"]))
         .option("subscribe", kafka_config["topic"])
+        .option("startingOffsets", "earliest")
         .load()
     )
     parsed_df = stream_df.select(
         from_json(col("value").cast("string"), schema).alias("data")
     ).select("data.*")
 
-    sentiment_udf = udf(analyze_sentiment, StringType())
+    logger.info("Streaming DF created.")
 
+    sentiment_udf = udf(analyze_sentiment, StringType())
     enriched_df = parsed_df.withColumn("sentiment", sentiment_udf(col("text")))
 
+    logger.info("Enriched DF created.")
+
+    # # Format: mongodb://[username:password@]host[:port]/[database.collection]
+    mongo_uri = f"mongodb://{mongo_config['username']}:{mongo_config['password']}@{mongo_config['host']}:{mongo_config['port']}"
     (
         enriched_df.writeStream.format("mongodb")
-        .option("spark.mongodb.connection.username", mongo_config["username"])
-        .option("spark.mongodb.connection.password", mongo_config["password"])
+        .option("spark.mongodb.connection.uri", mongo_uri)
         .option("spark.mongodb.database", mongo_config["database"])
         .option("spark.mongodb.collection", mongo_config["collection"])
         # .option("checkpointLocation", checkpoint_dir)
@@ -83,6 +102,8 @@ def run():
         .start()
         .awaitTermination()
     )
+
+    logger.info("Terminating Process.")
 
 
 if __name__ == "__main__":
