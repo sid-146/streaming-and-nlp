@@ -16,7 +16,6 @@ def run():
         "yelp_review_producer"
     ]
     mongo_config = load_config("mongo.yaml")["checkpoints_db"]
-    topic = kafka_config["topic"]
     config = {}
     config["bootstrap.servers"] = ",".join(kafka_config["bootstrap_servers"])
     config["client.id"] = "yelp_review_producer"
@@ -47,10 +46,8 @@ def run():
             if idx < checkpoint:
                 continue
 
-            print(review)
-
             producer.produce(
-                topic=topic,
+                topic=kafka_config["topic"],
                 key=str(review["review_id"]).encode("utf-8"),
                 value=json.dumps(review, default=json_serializer).encode("utf-8"),
                 callback=KafkaProducerFactory.delivery_report,
@@ -75,8 +72,10 @@ def run():
                 )
                 / 1000
             )
+            print(
+                f'Send review id : {review["review_id"]} to kafka topic : {kafka_config['topic']}.'
+            )
             time.sleep(sleep_timer)
-            break
 
     producer.flush()
 
