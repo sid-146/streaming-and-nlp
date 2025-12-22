@@ -23,17 +23,10 @@ def run():
     config["client.id"] = kafka_config["client_id"]
     consumer = KafkaConsumerFactory.create_consumer(topic, config)
 
-    checkpoint_mongo_config = load_config("mongo.yaml")["checkpoints_db"]
-    checkpoint_collection_client = MongoDBFactory.create_mongo_collection_client(
-        checkpoint_mongo_config
-    )
-
     raw_review_config = load_config("mongo.yaml")["raw_review_collection"]
     mongo_review_client = MongoDBFactory.create_mongo_collection_client(
         raw_review_config
     )
-
-    record = query_checkpoint(checkpoint_collection_client, "yelp_review_producer")
 
     # Todo: Create a checkpoint system for the mongodb for raw_reviews using checkpoints collection
     try:
