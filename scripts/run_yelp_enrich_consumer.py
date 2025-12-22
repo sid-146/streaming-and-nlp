@@ -8,6 +8,10 @@ SPARK_SUBMIT_CMD = [
     "spark-submit",
     "--master",
     "spark://spark-stream-master:3033",
+    "--conf",
+    "spark.driver.host=spark-stream-master",
+    "--conf",
+    "spark.driver.bindAddress=0.0.0.0",
     "--packages",
     "org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.7,"
     "org.apache.kafka:kafka-clients:3.6.1,"
