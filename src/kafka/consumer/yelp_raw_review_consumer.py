@@ -14,14 +14,20 @@ from confluent_kafka import KafkaException
 
 
 def run():
-    kafka_config = load_config("kafka.yaml")["kafka"]["consumer"][
+    kafka_config = load_config("kafka.yaml")["kafka"]["consumers"][
         "yelp_raw_review_consumer"
     ]
-    topic = kafka_config["topic"]
-    config = {}
-    config["bootstrap.servers"] = ",".join(kafka_config["bootstrap_servers"])
-    config["client.id"] = kafka_config["client_id"]
-    consumer = KafkaConsumerFactory.create_consumer(topic, config)
+    conf = {
+        "bootstrap.servers": ",".join(kafka_config["bootstrap_servers"]),
+        "group.id": kafka_config["group_id"],
+        "client.id": kafka_config["client_id"],
+        "auto.offset.reset": kafka_config["offset"],
+        "enable.auto.commit": kafka_config["autocommit"],
+        "session.timeout.ms": kafka_config.get("timeout", 10000),
+    }
+
+    consumer = KafkaConsumerFactory.create_consumer(conf)
+    consumer.subscribe([kafka_config["topic"]])
 
     raw_review_config = load_config("mongo.yaml")["raw_review_collection"]
     mongo_review_client = MongoDBFactory.create_mongo_collection_client(
@@ -30,6 +36,7 @@ def run():
 
     # Todo: Create a checkpoint system for the mongodb for raw_reviews using checkpoints collection
     try:
+        print("Consumer Started.")
         while True:
             msg = consumer.poll(1.0)
             if msg is None:
@@ -42,12 +49,14 @@ def run():
             # Todo: Keep the latest record only.
 
             # Decode
-            value = msg.value()
+            value = json.loads(msg.value().decode("utf-8"))
+            value["timestamp"] = time.time()
             # Upload into the raw_review collection
             inserted = mongo_review_client.insert_one(value)
             print(f"Inserted record with _id: {inserted.inserted_id}")
             # Update the checkpoint using consumer.commit(asynchronous=False)
-            consumer.commit(asynchronous=False)
+            # consumer.commit(asynchronous=False) # No need of this as autoCommit is enabled in config
+            # break
 
     except Exception as e:
         print(f"Failed with error : {e}")
