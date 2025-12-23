@@ -12,8 +12,8 @@ kafka:
       bootstrap_servers:
         - "localhost:29092"
       time_range_ms:
-        min: 100
-        max: 500
+        min: 3100
+        max: 9000
 
 
   consumers:
