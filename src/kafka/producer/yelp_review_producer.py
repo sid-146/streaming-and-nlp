@@ -40,7 +40,11 @@ def run():
     checkpoint = record["idx"]  # records done till now
     print("Skipping till checkpoint idx: ", checkpoint)
 
-    with open("data/yelp_academic_dataset_review.json", "r") as f:
+    with open(
+        "data/yelp_academic_dataset_review.json",
+        "r",
+        encoding="utf-8",
+    ) as f:
         reviews = ijson.items(f, "", multiple_values=True)
         for idx, review in enumerate(reviews):
             if idx < checkpoint:
