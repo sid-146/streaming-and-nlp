@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, from_json, udf
+from pyspark.sql.functions import col, from_json, udf, current_timestamp
 from pyspark.sql.types import (
     StructType,
     StructField,
@@ -86,7 +86,9 @@ def run():
     logger.info("Streaming DF created.")
 
     sentiment_udf = udf(analyze_sentiment, StringType())
-    enriched_df = parsed_df.withColumn("sentiment", sentiment_udf(col("text")))
+    enriched_df = parsed_df.withColumn(
+        "sentiment", sentiment_udf(col("text"))
+    ).withColumn("timestamp", current_timestamp())
 
     logger.info("Enriched DF created.")
 
