@@ -12,8 +12,8 @@ kafka:
       bootstrap_servers:
         - "localhost:29092"
       time_range_ms:
-        min: 3000
-        max: 15000
+        min: 100
+        max: 500
 
 
   consumers:
@@ -23,10 +23,14 @@ kafka:
       bootstrap_servers:
         - "kafka:9092"    
       group_id: 'spark-stream-group'
+      offset: 'earliest'
+
 
     yelp_raw_review_consumer:
       topic: 'raw_reviews'
       client_id: 'python.yelp_raw_review_consumer'
       bootstrap_servers:
-        - "kafka:9092"    
+        - "localhost:29092"    
       group_id: 'python-stream-group'
+      offset: 'earliest'
+      autocommit: true

@@ -16,7 +16,7 @@ enriched_review:
   password: password
 
 raw_review_collection:
-  host: mongodb
+  host: localhost
   port: 27017
   database: streaming_nlp
   collection: raw_reviews
