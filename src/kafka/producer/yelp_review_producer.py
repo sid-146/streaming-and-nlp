@@ -79,6 +79,7 @@ def run():
             print(
                 f'Send review id : {review["review_id"]} to kafka topic : {kafka_config['topic']}.'
             )
+            print(f"Sleeping for : {sleep_timer}")
             time.sleep(sleep_timer)
 
     producer.flush()
