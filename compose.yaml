@@ -151,19 +151,20 @@ services:
       - MASTER_PORT=3033
       - PYTHONPATH=/opt/spark-apps
     ports:
-      - "2020:2020"  # Spark Master UI
-      - "3033:3033"  # RPC
+      - "2020:2020"   # Spark Master UI
+      - "3033:3033"   # Spark Master RPC
+      - "4040:4040"   # Spark Application (Driver) UI
     volumes:
-    - spark_warehouse:/opt/spark-apps/spark-warehouse
-    - ./src/apps:/opt/spark-apps
-    - ./src:/opt/spark-apps/src
-    - spark_data:/opt/spark-data
-    - ./spark/entrypoint.sh:/opt/entrypoint.sh
-    - ./configs:/opt/spark-apps/configs
-    # - ./data:/opt/spark-apps
+      - spark_warehouse:/opt/spark-apps/spark-warehouse
+      - ./src/apps:/opt/spark-apps
+      - ./src:/opt/spark-apps/src
+      - spark_data:/opt/spark-data
+      - ./spark/entrypoint.sh:/opt/entrypoint.sh
+      - ./configs:/opt/spark-apps/configs
     networks:
       - local
     entrypoint: ["/bin/bash","/opt/entrypoint.sh"]
+
 
   # #################### Spark Worker 1 ####################
   spark-stream-worker-1:
@@ -176,13 +177,14 @@ services:
       - SPARK_MASTER_URL=spark://spark-stream-master:3033
       - SPARK_WORKER_CORES=2
       - SPARK_WORKER_MEMORY=2g
-      - WORKER_PORT=2021
+      - WORKER_PORT=7078
+      - SPARK_WORKER_WEBUI_PORT=2021
       - MASTER_PORT=3033
       - PYTHONPATH=/opt/spark-apps
     depends_on:
       - spark-stream-master
     ports:
-      - "2021:2021"
+      - "2021:2021"   # Spark Worker UI
     volumes:
       - spark_warehouse:/opt/spark-apps/spark-warehouse
       - spark_data:/opt/spark-data
@@ -193,6 +195,7 @@ services:
     networks:
       - local
     entrypoint: ["/bin/bash","/opt/entrypoint.sh"]
+
 
 # #################### PostgreSQL ####################
 # postgres:
